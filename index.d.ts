@@ -5,6 +5,65 @@ export interface PrintOptions {
   center?: boolean;
   paperSize?: number;
 }
+export interface PrintLabelOptions {
+  width: number
+  height: number
+  gap?: number
+  speed?: number
+  tear?: "ON" | "OFF"
+
+  text?: Array<{
+    text: string
+    x: number
+    y: number
+    fonttype: string
+    rotation: number
+    xscal: number
+    bold?: boolean
+  }>
+
+  qrcode?: Array<{
+    x: number
+    y: number
+    width: number
+    level: string
+    rotation: number
+    code: string
+  }>
+
+  barcode?: Array<{
+    x?: number
+    y?: number
+    height?: number
+    wide?: number
+    narrow?: number
+    rotation: number
+    code: string
+    type: string
+    readable: number
+  }>
+
+  image?: Array<{
+    x: number
+    y: number
+    width: number
+    mode: number
+    image: string
+  }>
+
+  reverse?: Array<{
+    x: number
+    y: number
+    width: number
+    height: number
+  }>
+
+  direction?: number
+  density?: number
+  reference?: [number, number]
+  sound?: 0 | 1
+  home?: 0 | 1
+}
 
 export interface BluetoothDevice {
   name: string;
@@ -53,6 +112,7 @@ export interface BluetoothTscPrinterType {
   PRINT_SPEED: Record<string, number>;
   TEAR: Record<string, string>;
   READABLE: Record<string, number>;
+  printLabel(options: PrintLabelOptions): Promise<void>;
 }
 
 export const BluetoothManager: BluetoothManagerType;

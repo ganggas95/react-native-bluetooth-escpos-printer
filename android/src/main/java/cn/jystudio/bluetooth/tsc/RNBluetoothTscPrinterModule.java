@@ -47,10 +47,6 @@ implements BluetoothServiceStateObserver{
         TscCommand.DIRECTION direction = options.hasKey("direction") ?
                 TscCommand.DIRECTION.BACKWARD.getValue() == options.getInt("direction") ? TscCommand.DIRECTION.BACKWARD : TscCommand.DIRECTION.FORWARD
                 : TscCommand.DIRECTION.FORWARD;
-//        Not Support Yet
-//        TscCommand.MIRROR mirror = options.hasKey("mirror") ?
-//                TscCommand.MIRROR.MIRROR.getValue() == options.getInt("mirror") ? TscCommand.MIRROR.MIRROR : TscCommand.MIRROR.NORMAL
-//                : TscCommand.MIRROR.NORMAL;
         TscCommand.DENSITY density = options.hasKey("density")?this.findDensity(options.getInt("density")):null;
         ReadableArray reference = options.hasKey("reference")?options.getArray("reference"):null;
 
@@ -91,7 +87,6 @@ implements BluetoothServiceStateObserver{
             int x = text.getInt("x");
             int y = text.getInt("y");
             TscCommand.FONTTYPE fonttype = this.findFontType(text.getString("fonttype"));
-            TscCommand.ROTATION rotation = this.findRotation(text.getInt("rotation"));
             TscCommand.FONTMUL xscal = this.findFontMul(text.getInt("xscal"));
             TscCommand.FONTMUL yscal = this.findFontMul(text.getInt("xscal"));
             boolean bold = text.hasKey("bold") && text.getBoolean("bold");
@@ -105,14 +100,11 @@ implements BluetoothServiceStateObserver{
                 return;
             }
 
-            tsc.addText(x, y, fonttype/*字体类型*/,
-                    rotation/*旋转角度*/, xscal/*横向放大*/, yscal/*纵向放大*/, t);
+            tsc.addText(x, y, fonttype/*字体类型*/, xscal/*横向放大*/, yscal/*纵向放大*/, t);
 
             if(bold){
-                tsc.addText(x+1, y, fonttype,
-                        rotation, xscal, yscal, t/*这里的t可能需要替换成同等长度的空格*/);
-                tsc.addText(x, y+1, fonttype,
-                        rotation, xscal, yscal, t/*这里的t可能需要替换成同等长度的空格*/);
+                tsc.addText(x+1, y, fonttype, xscal, yscal, t/*这里的t可能需要替换成同等长度的空格*/);
+                tsc.addText(x, y+1, fonttype, xscal, yscal, t/*这里的t可能需要替换成同等长度的空格*/);
             }
         }
 
@@ -138,9 +130,8 @@ implements BluetoothServiceStateObserver{
                 int y = qr.getInt("y");
                 int qrWidth = qr.getInt("width");
                 TscCommand.EEC level = this.findEEC(qr.getString("level"));
-                TscCommand.ROTATION rotation = this.findRotation(qr.getInt("rotation"));
                 String code = qr.getString("code");
-                tsc.addQRCode(x, y, level, qrWidth, rotation, code);
+                tsc.addQRCode(x, y, level, qrWidth, code);
             }
         }
         if (barCodes != null) {
@@ -151,11 +142,10 @@ implements BluetoothServiceStateObserver{
                 int barHeight = bar.hasKey("height") ? bar.getInt("height") : 200;
                 int barWide = bar.hasKey("wide") ? bar.getInt("wide") : 2;
                 int narrow = bar.hasKey("narrow") ? bar.getInt("narrow") : 1;
-                TscCommand.ROTATION rotation = this.findRotation(bar.getInt("rotation"));
                 String code = bar.getString("code");
                 TscCommand.BARCODETYPE type = this.findBarcodeType(bar.getString("type"));
                 TscCommand.READABLE readable = this.findReadable(bar.getInt("readable"));
-                tsc.add1DBarcode(x, y, type, barHeight, barWide, narrow, readable, rotation, code);
+                tsc.add1DBarcode(x, y, type, barHeight, barWide, narrow, readable, code);
             }
         }
 
@@ -216,16 +206,7 @@ implements BluetoothServiceStateObserver{
         return mul;
     }
 
-    private TscCommand.ROTATION findRotation(int rotation) {
-        TscCommand.ROTATION rt = TscCommand.ROTATION.ROTATION_0;
-        for (TscCommand.ROTATION r : TscCommand.ROTATION.values()) {
-            if (r.getValue() == rotation) {
-                rt = r;
-                break;
-            }
-        }
-        return rt;
-    }
+    
 
     private TscCommand.FONTTYPE findFontType(String fonttype) {
         TscCommand.FONTTYPE ft = TscCommand.FONTTYPE.FONT_CHINESE;
