@@ -11,15 +11,16 @@ export interface PrintLabelOptions {
   gap?: number
   speed?: number
   tear?: "ON" | "OFF"
+  defaultAlign?: "LEFT" | "CENTER" | "RIGHT"
 
   text?: Array<{
     text: string
     x: number
     y: number
     fonttype: string
-    rotation: number
     xscal: number
     bold?: boolean
+    align?: "LEFT" | "CENTER" | "RIGHT"
   }>
 
   qrcode?: Array<{
@@ -27,8 +28,8 @@ export interface PrintLabelOptions {
     y: number
     width: number
     level: string
-    rotation: number
     code: string
+    align?: "LEFT" | "CENTER" | "RIGHT"
   }>
 
   barcode?: Array<{
@@ -37,10 +38,10 @@ export interface PrintLabelOptions {
     height?: number
     wide?: number
     narrow?: number
-    rotation: number
     code: string
     type: string
     readable: number
+    align?: "LEFT" | "CENTER" | "RIGHT"
   }>
 
   image?: Array<{
@@ -49,6 +50,7 @@ export interface PrintLabelOptions {
     width: number
     mode: number
     image: string
+    align?: "LEFT" | "CENTER" | "RIGHT"
   }>
 
   reverse?: Array<{

@@ -90,6 +90,7 @@ implements BluetoothServiceStateObserver{
             TscCommand.FONTMUL xscal = this.findFontMul(text.getInt("xscal"));
             TscCommand.FONTMUL yscal = this.findFontMul(text.getInt("xscal"));
             boolean bold = text.hasKey("bold") && text.getBoolean("bold");
+            String align = text.hasKey("align") ? text.getString("align") : defaultAlign;
 
             try {
                 byte[] temp = t.getBytes("UTF-8");
@@ -100,12 +101,14 @@ implements BluetoothServiceStateObserver{
                 return;
             }
 
+            int textWidthDots = computeTextWidthDots(fonttype, xscal, t);
+            x = computeAlignedX(width, dotsPerMm, originX, textWidthDots, align, x);
             tsc.addText(x, y, fonttype/*字体类型*/, xscal/*横向放大*/, yscal/*纵向放大*/, t);
 
             if(bold){
                 tsc.addText(x+1, y, fonttype, xscal, yscal, t/*这里的t可能需要替换成同等长度的空格*/);
                 tsc.addText(x, y+1, fonttype, xscal, yscal, t/*这里的t可能需要替换成同等长度的空格*/);
-            }
+        }
         }
 
         //绘制图片
@@ -117,8 +120,10 @@ implements BluetoothServiceStateObserver{
                 int imgWidth = img.getInt("width");
                 TscCommand.BITMAP_MODE mode = this.findBitmapMode(img.getInt("mode"));
                 String image  = img.getString("image");
+                String align = img.hasKey("align") ? img.getString("align") : defaultAlign;
                 byte[] decoded = Base64.decode(image, Base64.DEFAULT);
                 Bitmap b = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
+                x = computeAlignedX(width, dotsPerMm, originX, imgWidth, align, x);
                 tsc.addBitmap(x,y, mode, imgWidth,b);
             }
         }
@@ -131,6 +136,8 @@ implements BluetoothServiceStateObserver{
                 int qrWidth = qr.getInt("width");
                 TscCommand.EEC level = this.findEEC(qr.getString("level"));
                 String code = qr.getString("code");
+                String align = qr.hasKey("align") ? qr.getString("align") : defaultAlign;
+                x = computeAlignedX(width, dotsPerMm, originX, qrWidth, align, x);
                 tsc.addQRCode(x, y, level, qrWidth, code);
             }
         }
@@ -145,6 +152,11 @@ implements BluetoothServiceStateObserver{
                 String code = bar.getString("code");
                 TscCommand.BARCODETYPE type = this.findBarcodeType(bar.getString("type"));
                 TscCommand.READABLE readable = this.findReadable(bar.getInt("readable"));
+                String align = bar.hasKey("align") ? bar.getString("align") : defaultAlign;
+                Integer bw = bar.hasKey("calcWidth") ? bar.getInt("calcWidth") : null;
+                if (bw != null) {
+                    x = computeAlignedX(width, dotsPerMm, originX, bw, align, x);
+                }
                 tsc.add1DBarcode(x, y, type, barHeight, barWide, narrow, readable, code);
             }
         }
@@ -271,6 +283,41 @@ implements BluetoothServiceStateObserver{
         return bm;
     }
 
+    private int baseCharWidth(TscCommand.FONTTYPE font) {
+        if (font == TscCommand.FONTTYPE.FONT_1) return 8;
+        if (font == TscCommand.FONTTYPE.FONT_2) return 12;
+        if (font == TscCommand.FONTTYPE.FONT_3) return 16;
+        if (font == TscCommand.FONTTYPE.FONT_4) return 20;
+        if (font == TscCommand.FONTTYPE.FONT_5) return 24;
+        if (font == TscCommand.FONTTYPE.FONT_6) return 32;
+        if (font == TscCommand.FONTTYPE.FONT_7) return 14;
+        if (font == TscCommand.FONTTYPE.FONT_8) return 14;
+        if (font == TscCommand.FONTTYPE.FONT_CHINESE) return 24;
+        if (font == TscCommand.FONTTYPE.FONT_TAIWAN) return 24;
+        if (font == TscCommand.FONTTYPE.FONT_KOREAN) return 24;
+        return 12;
+    }
+
+    private int computeTextWidthDots(TscCommand.FONTTYPE font, TscCommand.FONTMUL xscal, String text) {
+        int len = text == null ? 0 : text.length();
+        return baseCharWidth(font) * xscal.getValue() * len;
+    }
+
+    private int computeAlignedX(int labelWidthMm, int dotsPerMm, int originX, int elementWidthDots, String align, int providedX) {
+        if (align == null) return providedX;
+        String a = align.toUpperCase();
+        int labelDots = labelWidthMm * dotsPerMm;
+        if ("CENTER".equals(a)) {
+            int v = originX + (labelDots - elementWidthDots) / 2;
+            return v < 0 ? 0 : v;
+        }
+        if ("RIGHT".equals(a)) {
+            int v = originX + (labelDots - elementWidthDots);
+            return v < 0 ? 0 : v;
+        }
+        return providedX;
+    }
+
     private boolean sendDataByte(byte[] data) {
         if (mService.getState() != BluetoothService.STATE_CONNECTED) {
             return false;
@@ -284,3 +331,9 @@ implements BluetoothServiceStateObserver{
 
     }
 }
+        int dotsPerMm = options.hasKey("dotPerMm") ? options.getInt("dotPerMm") : 8;
+        String defaultAlign = options.hasKey("defaultAlign") ? options.getString("defaultAlign") : "LEFT";
+        int originX = 0;
+        if (reference != null && reference.size() == 2) {
+            originX = reference.getInt(0);
+        }
