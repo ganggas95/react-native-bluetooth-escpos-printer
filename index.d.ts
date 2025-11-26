@@ -11,6 +11,7 @@ export interface PrintLabelOptions {
   gap?: number
   speed?: number
   tear?: "ON" | "OFF"
+  dotPerMm?: number
   defaultAlign?: "LEFT" | "CENTER" | "RIGHT"
 
   text?: Array<{

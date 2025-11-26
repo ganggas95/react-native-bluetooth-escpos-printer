@@ -50,6 +50,13 @@ implements BluetoothServiceStateObserver{
         TscCommand.DENSITY density = options.hasKey("density")?this.findDensity(options.getInt("density")):null;
         ReadableArray reference = options.hasKey("reference")?options.getArray("reference"):null;
 
+        int dotsPerMm = options.hasKey("dotPerMm") ? options.getInt("dotPerMm") : 8;
+        String defaultAlign = options.hasKey("defaultAlign") ? options.getString("defaultAlign") : "LEFT";
+        int originX = 0;
+        if (reference != null && reference.size() == 2) {
+            originX = reference.getInt(0);
+        }
+
         boolean sound = false;
         if (options.hasKey("sound") && options.getInt("sound") == 1) {
             sound = true;
@@ -331,9 +338,3 @@ implements BluetoothServiceStateObserver{
 
     }
 }
-        int dotsPerMm = options.hasKey("dotPerMm") ? options.getInt("dotPerMm") : 8;
-        String defaultAlign = options.hasKey("defaultAlign") ? options.getString("defaultAlign") : "LEFT";
-        int originX = 0;
-        if (reference != null && reference.size() == 2) {
-            originX = reference.getInt(0);
-        }
